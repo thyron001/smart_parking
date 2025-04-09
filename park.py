@@ -11,7 +11,7 @@ import os
 #import PYSimplegui as sg
 
 # -------------------- DATOS PARA PAYPHONE ---------------------
-PAYPHONE_TOKEN = "v9EODbA3Yq99l19se0vV-7VYEBJzbfE3HCNQmCm8TWPFtVK0S7gGHRz3wQs4mPqb7bY2InjjTZNDKy_PpBJO4qymE1R5Nt8mfrhwmBkMF_Kus8hY18tG0QdmYC3SUO8fD1YeiYZVHJmNo3AfL_HUBPdOoSWnfbn5hpFohEa7VJUI03eXiT2ToYCH6dtw_d9e9iBis0nlrl9_5r4mHE5KK1uay-daapObVmBUu1uAL8VtDf5WXYWGIP5bQgoI5C05PoqpSKj67qCkhAfqHwerEGjikssYgKotkXDKpencN37tBMc8w9ZAokDVdKVdCHld2Sw4kQ"
+PAYPHONE_TOKEN = "WIqw9NblfUOZ92_WpuHzRLy0lvVVU7XdZY0Q7wieeE5muupcMX7us-qn7u3M2toEGfIch83Q8n179l33upNBhsXDntb1hQCzBL02BNYFyyNtd4J1WXC162M5ir47vNGs1CDP7DOJFwwAolOTTzMc236QHBZ6-bFWWfeZCHxamfxXiE_0NPJZwp4zvUhjaJIXebCx5HvitKZtmFX16kWxSBoZe05-R6PnD__aTLb2XU2gOLfz5Hs0UWLn0ooMuISVZxBOk8v0x3OmUgautY_ta-utTG3N22An4X5sav68bRwSS6doQv3rA2KG_vPyIZTdbsVWFg"
 
 # -------------------- CONFIGURACIÓN DE ARCHIVOS ---------------------
 
@@ -99,7 +99,6 @@ try:
              print("Excepción al generar link de pago:", str(e))
             
             
-
             # Agregar la columna precio
             fila['precio'] = precio
             fila['tiempo_total'] = tiempo_total

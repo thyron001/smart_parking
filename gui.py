@@ -15,7 +15,7 @@ archivo_activo = 'registro_activo.csv'
 
 # Asegurarse de que los archivos existen y tengan las columnas correctas
 if not os.path.exists(archivo_base):
-    pd.DataFrame(columns=['ID', 'ingreso', 'salida', 'precio']).to_csv(archivo_base, index=False)
+    pd.DataFrame(columns=['ID', 'ingreso', 'salida', 'tiempo_total', 'precio']).to_csv(archivo_base, index=False)
 
 if not os.path.exists(archivo_activo):
     pd.DataFrame(columns=['ID', 'ingreso', 'salida']).to_csv(archivo_activo, index=False)
@@ -28,18 +28,29 @@ registro_activo = pd.read_csv(archivo_activo)
 # ---------------------- INICIAR RFID ---------------------------------
 reader = SimpleMFRC522()
 
-# ---------------------- BUCLE PRINCIPAL ------------------------------
+# ---------------------- INTERFAZ GRÁFICA -----------------------------
+layout = [
+    [sg.Text("ID del usuario:", size=(20, 1)), sg.Text("", size=(20, 1), key="ID")],
+    [sg.Text("Tiempo de estacionamiento:", size=(20, 1)), sg.Text("", size=(20, 1), key="Tiempo")],
+    [sg.Text("Precio a cobrar:", size=(20, 1)), sg.Text("", size=(20, 1), key="Precio")],
+    [sg.Button("Salir", size=(10, 1))]
+]
 
+# Crear la ventana
+window = sg.Window("Sistema de Estacionamiento", layout, finalize=True)
+
+# ---------------------- BUCLE PRINCIPAL ------------------------------
 try:
     while True:
+        event, values = window.read(timeout=100)  # Se actualiza cada 100ms
+
+        if event == sg.WINDOW_CLOSED or event == "Salir":
+            break
+
         print("Esperando tarjeta...")
         id, text = reader.read()
         ahora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        
-        sg.Window(title="PARKING",layout=[[]],margins=(100,50)) #GUI
-        
-        
-        
+
         # Verificar si el ID ya está en el registro activo (es salida)
         if id in registro_activo['ID'].values:
             print(f"ID {id} está saliendo.")
@@ -54,20 +65,20 @@ try:
             hora_salida = datetime.strptime(ahora, "%Y-%m-%d %H:%M:%S")
 
             tiempo_total = hora_salida - hora_ingreso
-            minutos = int(tiempo_total.total_seconds() // 60)
-            segundos = int(tiempo_total.total_seconds() % 60)
+            segundos_totales = int(tiempo_total.total_seconds())
+
+            minutos = segundos_totales // 60
+            segundos = segundos_totales % 60
+
+            # Calcular precio basado en bloques de 1500 segundos (25 minutos)
+            bloques = (segundos_totales // 1500) + 1
+            precio = bloques * 0.30
 
             print(f"Tiempo total: {minutos} minutos y {segundos} segundos.")
-            
-            
-
-            # Calcular precio
-            precio = ((minutos // 25)+1)*0.30
-
             print(f"Precio a cobrar: ${precio:.2f}")
 
             # Agregar la columna precio
-            fila['precio'] = precio
+            fila['precio'] = round(precio, 2)
             fila['tiempo_total'] = tiempo_total
 
             # Agregar al historial completo
@@ -75,6 +86,11 @@ try:
 
             # Eliminar del registro activo
             registro_activo = registro_activo[registro_activo['ID'] != id]
+
+            # Actualizar la interfaz gráfica
+            window["ID"].update(id)
+            window["Tiempo"].update(f"{minutos} min {segundos} seg")
+            window["Precio"].update(f"${precio:.2f}")
 
         else:
             print(f"ID {id} está ingresando.")
@@ -87,16 +103,18 @@ try:
 
             registro_activo = pd.concat([registro_activo, nueva_fila], ignore_index=True)
 
+            # Actualizar la interfaz gráfica con los datos de entrada
+            window["ID"].update(id)
+            window["Tiempo"].update("Ingreso registrado")
+            window["Precio"].update("N/A")
+
         # Guardar los archivos actualizados
         base_datos.to_csv(archivo_base, index=False)
         registro_activo.to_csv(archivo_activo, index=False)
 
-        print("\n--- Estado actual del parqueo ---")
-        print(registro_activo)
-        print("---------------------------------\n")
-
-        time.sleep(1)
-        
 except KeyboardInterrupt:
     GPIO.cleanup()
     print("\nPrograma detenido manualmente.")
+
+# Cerrar ventana al terminar
+window.close()
