@@ -6,8 +6,9 @@ import time
 from datetime import datetime
 from mfrc522 import SimpleMFRC522
 import os
+#import PYSimplegui as sg
 
-# --------------------- CONFIGURACIÓN DE ARCHIVOS ---------------------
+# -------------------- CONFIGURACIÓN DE ARCHIVOS ---------------------
 
 archivo_base = 'base_datos.csv'
 archivo_activo = 'registro_activo.csv'
@@ -52,14 +53,17 @@ try:
             segundos = int(tiempo_total.total_seconds() % 60)
 
             print(f"Tiempo total: {minutos} minutos y {segundos} segundos.")
+            
+            
 
             # Calcular precio
-            precio = ((minutos // 25) + 1) * 0.30
+            precio = ((minutos // 25)+1)*0.30
 
             print(f"Precio a cobrar: ${precio:.2f}")
 
             # Agregar la columna precio
             fila['precio'] = precio
+            fila['tiempo_total'] = tiempo_total
 
             # Agregar al historial completo
             base_datos = pd.concat([base_datos, fila], ignore_index=True)
