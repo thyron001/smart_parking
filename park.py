@@ -1,43 +1,96 @@
-#!/usr/bin/env python
+.#!/usr/bin/env python
 
 import RPi.GPIO as GPIO
 import pandas as pd
 import time
-import keyboard
+from datetime import datetime
 from mfrc522 import SimpleMFRC522
+import os
 
-#csv
-data = pd.read_csv('data.csv') #Se lee el archivo csv
+# --------------------- CONFIGURACIÓN DE ARCHIVOS ---------------------
 
-#Leer ID
+archivo_base = 'base_datos.csv'
+archivo_activo = 'registro_activo.csv'
 
-reader = SimpleMFRC522() #Se lee el RFID
+# Asegurarse de que los archivos existen y tengan las columnas correctas
+if not os.path.exists(archivo_base):
+    pd.DataFrame(columns=['ID', 'ingreso', 'salida', 'precio']).to_csv(archivo_base, index=False)
+
+if not os.path.exists(archivo_activo):
+    pd.DataFrame(columns=['ID', 'ingreso', 'salida']).to_csv(archivo_activo, index=False)
+
+# ---------------------- LECTURA DE ARCHIVOS --------------------------
+
+base_datos = pd.read_csv(archivo_base)
+registro_activo = pd.read_csv(archivo_activo)
+
+# ---------------------- INICIAR RFID ---------------------------------
+reader = SimpleMFRC522()
+
+# ---------------------- BUCLE PRINCIPAL ------------------------------
 try:
-	while True:
-		id, text = reader.read()
-		clk = time.time() #Captura el tiempo cuando se pasa la tarjeta por el RFID
-				  #El valor que devuelve son los segundos que pasaron desde el 1 de enero de 1970
-                if id in data.loc['ID']: #Si el ID de la tarjeta ya esta en la columna 'ID' del archivo data.csv
-                        salida = clk    #Entonces, el tiempo capturado resulta ser cuando sale del parqueadero. Este valor se guarda en la variable 'salida'
+    while True:
+        print("Esperando tarjeta...")
+        id, text = reader.read()
+        ahora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-                else:               #Si el ID no estaba en la columna, entonces el tiempo capturado resulta ser cuando ingresa
-                        ingreso = clk   #Este valor se guarda en la variable 'ingreso'
+        # Verificar si el ID ya está en el registro activo (es salida)
+        if id in registro_activo['ID'].values:
+            print(f"ID {id} está saliendo.")
 
-                #Diccionario para ordenar las variables con sus respectivas columnas
-                new_row = {
-			"ID": id, #La ID se guarda en la columna 'ID'
-			"ingreso": ingreso, #La variable 'ingreso' pertenece a la columna 'Ingreso' donde va el tiempo cuando entra al parqueadero.
-			"salida": salida    #La variable 'salida' pertenece a la colummna 'Salida' donde va el tiempo cuando sale del parqueadero.
-		}
+            # Obtener fila del ID
+            fila = registro_activo.loc[registro_activo['ID'] == id].copy()
+            fila['salida'] = ahora
 
-		#Guardar ID
-                data.loc[len(data)] = new_row       #Con 'len(data)' se situa despues de la ultima fila para guardar ahi el diccionario.
-                data.to_csv('data.csv',index=False) #Se sobreescribe el archivo 'data.csv' con la nueva ultima fila
+            # Calcular tiempo en el parqueadero
+            hora_ingreso_str = fila.iloc[0]['ingreso']
+            hora_ingreso = datetime.strptime(hora_ingreso_str, "%Y-%m-%d %H:%M:%S")
+            hora_salida = datetime.strptime(ahora, "%Y-%m-%d %H:%M:%S")
 
-                #Imprimir
-                print(data)
+            tiempo_total = hora_salida - hora_ingreso
+            minutos = int(tiempo_total.total_seconds() // 60)
+            segundos = int(tiempo_total.total_seconds() % 60)
 
-                time.sleep(1)
+            print(f"Tiempo total: {minutos} minutos y {segundos} segundos.")
 
-except KeyboardInterrupt: #Cuando se realiza una interrupcion de teclado (como Ctrl+C) se sale del bucle, y por ende, se termina el program
-	GPIO.cleanup()
+            # Calcular precio
+            if minutos >= 25:
+                precio = 0.50
+            else:
+                precio = 0.25
+
+            print(f"Precio a cobrar: ${precio:.2f}")
+
+            # Agregar la columna precio
+            fila['precio'] = precio
+
+            # Agregar al historial completo
+            base_datos = pd.concat([base_datos, fila], ignore_index=True)
+
+            # Eliminar del registro activo
+            registro_activo = registro_activo[registro_activo['ID'] != id]
+
+        else:
+            print(f"ID {id} está ingresando.")
+
+            nueva_fila = pd.DataFrame([{
+                'ID': id,
+                'ingreso': ahora,
+                'salida': ''
+            }])
+
+            registro_activo = pd.concat([registro_activo, nueva_fila], ignore_index=True)
+
+        # Guardar los archivos actualizados
+        base_datos.to_csv(archivo_base, index=False)
+        registro_activo.to_csv(archivo_activo, index=False)
+
+        print("\n--- Estado actual del parqueo ---")
+        print(registro_activo)
+        print("---------------------------------\n")
+
+        time.sleep(1)
+
+except KeyboardInterrupt:
+    GPIO.cleanup()
+    print("\nPrograma detenido manualmente.")
