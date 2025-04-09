@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-Error generando el link de pago: {"message":"No HTTP resource was found that matches the request URI 'https://securepayphonepay.azurewebsites.net/api/button'."}
 import webbrowser
 import requests
 import RPi.GPIO as GPIO
@@ -76,14 +75,14 @@ try:
             payload = {
             "amount": int(precio * 100),  # en centavos
             "amountWithoutTax": int(precio * 100),
+            "storeId": "7cf25dcf-b2a1-478d-b2ab-181be82593c6",
             "tax": 0,
-            "service": 0,
-            "tip": 0,
+            "countryCode": "593",
             "clientTransactionId": str(id),
-            "phoneNumber": "",  # Si lo tienes guardado
-            "email": "",        # Opcional
-            "responseUrl": "https://tu-sitio.com/respuesta",  # o tu localhost para pruebas
-            "expirationMinutes": 5
+            "phoneNumber": "0983392763",  # Si lo tienes guardado
+            "email": "tyminobra@outlook.es",        # Opcional
+            "expirationMinutes": 5,
+            "currency": "USD",
             }
 
             try:
