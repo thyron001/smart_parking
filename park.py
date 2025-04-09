@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import webbrowser
+import requests
 import RPi.GPIO as GPIO
 import pandas as pd
 import time
@@ -7,6 +9,9 @@ from datetime import datetime
 from mfrc522 import SimpleMFRC522
 import os
 #import PYSimplegui as sg
+
+# -------------------- DATOS PARA PAYPHONE ---------------------
+PAYPHONE_TOKEN = "v9EODbA3Yq99l19se0vV-7VYEBJzbfE3HCNQmCm8TWPFtVK0S7gGHRz3wQs4mPqb7bY2InjjTZNDKy_PpBJO4qymE1R5Nt8mfrhwmBkMF_Kus8hY18tG0QdmYC3SUO8fD1YeiYZVHJmNo3AfL_HUBPdOoSWnfbn5hpFohEa7VJUI03eXiT2ToYCH6dtw_d9e9iBis0nlrl9_5r4mHE5KK1uay-daapObVmBUu1uAL8VtDf5WXYWGIP5bQgoI5C05PoqpSKj67qCkhAfqHwerEGjikssYgKotkXDKpencN37tBMc8w9ZAokDVdKVdCHld2Sw4kQ"
 
 # -------------------- CONFIGURACIÓN DE ARCHIVOS ---------------------
 
@@ -60,6 +65,40 @@ try:
             precio = ((minutos // 25)+1)*0.30
 
             print(f"Precio a cobrar: ${precio:.2f}")
+            
+            
+            # ----------------- PAYPHONE ----------------------------------
+            headers = {
+                "Authorization": f"Bearer {PAYPHONE_TOKEN}",
+                "Content-Type": "application/json"
+            }
+
+            payload = {
+            "amount": int(precio * 100),  # en centavos
+            "amountWithoutTax": int(precio * 100),
+            "tax": 0,
+            "service": 0,
+            "tip": 0,
+            "clientTransactionId": str(id),
+            "phoneNumber": "",  # Si lo tienes guardado
+            "email": "",        # Opcional
+            "responseUrl": "https://tu-sitio.com/respuesta",  # o tu localhost para pruebas
+            "expirationMinutes": 5
+            }
+
+            try:
+             response = requests.post("https://pay.payphonetodoesposible.com/api/button", headers=headers, json=payload)
+             if response.status_code == 200:
+                link_pago = response.json().get("paymentUrl")
+                print(f"Link de pago: {link_pago}")
+                webbrowser.open(link_pago)
+             else:
+                print("Error generando el link de pago:", response.text)
+
+            except Exception as e:
+             print("Excepción al generar link de pago:", str(e))
+            
+            
 
             # Agregar la columna precio
             fila['precio'] = precio
