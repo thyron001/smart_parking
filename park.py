@@ -55,7 +55,7 @@ try:
 
             # Calcular precio
             if minutos >= 25:
-                precio = 0.50
+                precio = ((minutos // 25) + 1) * 0.30
             else:
                 precio = 0.25
 
