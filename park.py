@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+Error generando el link de pago: {"message":"No HTTP resource was found that matches the request URI 'https://securepayphonepay.azurewebsites.net/api/button'."}
 import webbrowser
 import requests
 import RPi.GPIO as GPIO
