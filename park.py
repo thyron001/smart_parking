@@ -54,10 +54,7 @@ try:
             print(f"Tiempo total: {minutos} minutos y {segundos} segundos.")
 
             # Calcular precio
-            if minutos >= 25:
-                precio = ((minutos // 25) + 1) * 0.30
-            else:
-                precio = 0.25
+            precio = ((minutos // 25) + 1) * 0.30
 
             print(f"Precio a cobrar: ${precio:.2f}")
 
