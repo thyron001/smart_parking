@@ -48,6 +48,7 @@ try:
             break
 
         print("Esperando tarjeta...")
+        time.sleep(1)
         id, text = reader.read()
         ahora = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -76,7 +77,8 @@ try:
 
             print(f"Tiempo total: {minutos} minutos y {segundos} segundos.")
             print(f"Precio a cobrar: ${precio:.2f}")
-
+            print(" ")
+            
             # Agregar la columna precio
             fila['precio'] = round(precio, 2)
             fila['tiempo_total'] = tiempo_total
@@ -107,6 +109,7 @@ try:
             window["ID"].update(id)
             window["Tiempo"].update("Ingreso registrado")
             window["Precio"].update("N/A")
+            time.sleep(1)
 
         # Guardar los archivos actualizados
         base_datos.to_csv(archivo_base, index=False)
