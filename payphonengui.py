@@ -87,20 +87,19 @@ try:
             }
 
             payload = {
-            "amount": int(precio * 100),  # en centavos
-            "amountWithoutTax": int(precio * 100),
-            "storeId": "7cf25dcf-b2a1-478d-b2ab-181be82593c6",
-            "tax": 0,
+            "phoneNumber": "0983392763",
             "countryCode": "593",
+            "amount": int(precio * 100),
+            "amountWithoutTax": int(precio * 100),
+            "currency": "USD",
             "clientTransactionId": str(id),
-            "phoneNumber": "0983392763",  # Si lo tienes guardado
+            "storeId": "7cf25dcf-b2a1-478d-b2ab-181be82593c6",
             "email": "tyminobra@outlook.es",        # Opcional
             "expirationMinutes": 5,
-            "currency": "USD",
             }
 
             try:
-             response = requests.post("https://pay.payphonetodoesposible.com/api/button", headers=headers, json=payload)
+             response = requests.post("https://pay.payphonetodoesposible.com/api/Sale", headers=headers, json=payload)
              if response.status_code == 200:
                 link_pago = response.json().get("paymentUrl")
                 print(f"Link de pago: {link_pago}")
