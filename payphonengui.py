@@ -99,7 +99,7 @@ try:
             }
 
             try:
-             response = requests.post("https://pay.payphonetodoesposible.com/api/Sale", headers=headers, json=payload)
+             response = requests.post("https://pay.payphonetodoesposible.com/api/Links", headers=headers, json=payload)
              if response.status_code == 200:
                 link_pago = response.json().get("paymentUrl")
                 print(f"Link de pago: {link_pago}")
