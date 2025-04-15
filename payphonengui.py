@@ -10,7 +10,9 @@ from mfrc522 import SimpleMFRC522
 import os
 import PySimpleGUI as sg
 import json
+import io
 import qrcode
+from PIL import Image
 
 
 # -------------------- DATOS PARA PAYPHONE ---------------------
@@ -41,7 +43,7 @@ layout = [
     [sg.Text("ID del usuario:", size=(20, 1)), sg.Text("", size=(20, 1), key="ID")],
     [sg.Text("Tiempo de estacionamiento:", size=(20, 1)), sg.Text("", size=(20, 1), key="Tiempo")],
     [sg.Text("Precio a cobrar:", size=(20, 1)), sg.Text("", size=(20, 1), key="Precio")],
-    [sg.Tet("Escanea este QR para pagar:", size=(20, 1)), sg.ImageItem("", size=(20,1), key="QR")],
+    [sg.Text("Escanea el QR:", size=(20, 1)), sg.Image("", key="QR")],
     [sg.Button("Salir", size=(10, 1))]
 ]
 
@@ -110,7 +112,13 @@ try:
                 #link_pago = response.json().get("paymentUrl")
                 link = response.json()
                 print(link)  # Esto lo imprime bonito en la terminal
-                webbrowser.open(link)
+                
+                qr = qrcode.make(link)
+                buffer = io.BytesIO()
+                qr.save(buffer, format='PNG')
+                qr_bytes = buffer.getvalue()
+                
+                webbrowser.open(link)                
              else:
                 print("Error generando el link de pago:", response.text)
 
@@ -131,6 +139,7 @@ try:
             window["ID"].update(id)
             window["Tiempo"].update(f"{minutos} min {segundos} seg")
             window["Precio"].update(f"${precio:.2f}")
+            window["QR"].update(qr_bytes)
 
         else:
             print(f"ID {id} está ingresando.")
@@ -142,11 +151,17 @@ try:
             }])
 
             registro_activo = pd.concat([registro_activo, nueva_fila], ignore_index=True)
-
+            
+            img_white = Image.new('RGB', (200, 200), color='white')
+            buffer = io.BytesIO()
+            img_white.save(buffer, format='PNG')
+            img_white_bytes = buffer.getvalue()
+            
             # Actualizar la interfaz gráfica con los datos de entrada
             window["ID"].update(id)
             window["Tiempo"].update("Ingreso registrado")
             window["Precio"].update(" ")
+            window["QR"].update(img_white_bytes)
 
         # Guardar los archivos actualizados
         base_datos.to_csv(archivo_base, index=False)
