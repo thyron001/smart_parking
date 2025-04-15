@@ -108,10 +108,9 @@ try:
              
              if response.status_code == 200:
                 #link_pago = response.json().get("paymentUrl")
-                data = response.json()
-                print("Respuesta completa de la API:")
-                print(json.dumps(data, indent=4))  # Esto lo imprime bonito en la terminal
-                webbrowser.open(json.dumps(data))
+                link = response.json()
+                print(link)  # Esto lo imprime bonito en la terminal
+                webbrowser.open(link)
              else:
                 print("Error generando el link de pago:", response.text)
 
