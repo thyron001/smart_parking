@@ -9,6 +9,9 @@ from datetime import datetime
 from mfrc522 import SimpleMFRC522
 import os
 import PySimpleGUI as sg
+import json
+import qrcode
+
 
 # -------------------- DATOS PARA PAYPHONE ---------------------
 PAYPHONE_TOKEN = "WIqw9NblfUOZ92_WpuHzRLy0lvVVU7XdZY0Q7wieeE5muupcMX7us-qn7u3M2toEGfIch83Q8n179l33upNBhsXDntb1hQCzBL02BNYFyyNtd4J1WXC162M5ir47vNGs1CDP7DOJFwwAolOTTzMc236QHBZ6-bFWWfeZCHxamfxXiE_0NPJZwp4zvUhjaJIXebCx5HvitKZtmFX16kWxSBoZe05-R6PnD__aTLb2XU2gOLfz5Hs0UWLn0ooMuISVZxBOk8v0x3OmUgautY_ta-utTG3N22An4X5sav68bRwSS6doQv3rA2KG_vPyIZTdbsVWFg"
@@ -38,6 +41,7 @@ layout = [
     [sg.Text("ID del usuario:", size=(20, 1)), sg.Text("", size=(20, 1), key="ID")],
     [sg.Text("Tiempo de estacionamiento:", size=(20, 1)), sg.Text("", size=(20, 1), key="Tiempo")],
     [sg.Text("Precio a cobrar:", size=(20, 1)), sg.Text("", size=(20, 1), key="Precio")],
+    [sg.Tet("Escanea este QR para pagar:", size=(20, 1)), sg.ImageItem("", size=(20,1), key="QR")],
     [sg.Button("Salir", size=(10, 1))]
 ]
 
@@ -74,7 +78,7 @@ try:
             segundos = segundos_totales % 60
 
             # Calcular precio basado en bloques de 1500 segundos (25 minutos)
-            precio = ((segundos_totales // 1500) + 1) * 0.30
+            precio = ((segundos_totales // 1500) + 1) * 1
 
             print(f"Tiempo total: {minutos} minutos y {segundos} segundos.")
             print(f"Precio a cobrar: ${precio:.2f}")
@@ -100,10 +104,14 @@ try:
 
             try:
              response = requests.post("https://pay.payphonetodoesposible.com/api/Links", headers=headers, json=payload)
+             
+             
              if response.status_code == 200:
-                link_pago = response.json().get("paymentUrl")
-                print(f"Link de pago: {link_pago}")
-                webbrowser.open(link_pago)
+                #link_pago = response.json().get("paymentUrl")
+                data = response.json()
+                print("Respuesta completa de la API:")
+                print(json.dumps(data, indent=4))  # Esto lo imprime bonito en la terminal
+                webbrowser.open(json.dumps(data))
              else:
                 print("Error generando el link de pago:", response.text)
 
